@@ -23,6 +23,9 @@ appform=$(curl -s -b <(echo "$okta_cookies") "$saml_req_url" | pup 'form#appForm
 saml_resp_url=$(echo "$appform" | pup 'form#appForm attr{action}')
 saml_resp=$(echo "$appform" | pup 'form#appForm input[name="SAMLResponse"] attr{value}' | jq -Rr @uri)
 
+curl -s -b <(echo "$okta_cookies") -X DELETE 'https://'"$okta_domain"'/api/v1/sessions/me'
+echo 'okta session terminated (no longer needed)'
+
 cisco_idiocy=$(curl -s -H 'Content-Type: application/x-www-form-urlencoded' -d 'SAMLResponse='"$saml_resp"'&RelayState=' "$saml_resp_url")
 real_saml_resp_uri=$(echo "$cisco_idiocy" | pup 'form#samlform attr{action}')
 csrf_token=$(echo "$cisco_idiocy" | pup 'form#samlform input[name="csrf_token"] attr{value}')
